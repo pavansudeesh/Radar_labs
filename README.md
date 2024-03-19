@@ -4,10 +4,10 @@ DECLARE
     table_name VARCHAR2(100);
 BEGIN
     FOR table_rec IN (
-        SELECT table_name
+        SELECT DISTINCT REPLACE(table_name, 'DEC23', '') AS table_name
         FROM all_tables
         WHERE owner = 'SLFR'
-        AND table_name LIKE 'FAIR_OUT_%'
+        AND table_name LIKE 'FAIR_OUT%'
         AND TO_DATE(SUBSTR(table_name, -5), 'MONYY') < TO_DATE('DEC23', 'MONYY')
     )
     LOOP
@@ -16,3 +16,4 @@ BEGIN
     END LOOP;
 END;
 /
+
