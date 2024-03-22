@@ -1,19 +1,15 @@
-# Radar_labs
-
-DECLARE
-    table_name VARCHAR2(100);
-BEGIN
-    FOR table_rec IN (
-        SELECT DISTINCT REPLACE(table_name, 'DEC23', '') AS table_name
-        FROM all_tables
-        WHERE owner = 'SLFR'
-        AND table_name LIKE 'FAIR_OUT%'
-        AND TO_DATE(SUBSTR(table_name, -5), 'MONYY') < TO_DATE('DEC23', 'MONYY')
-    )
-    LOOP
-        EXECUTE IMMEDIATE 'DROP TABLE ' || table_rec.table_name;
-        DBMS_OUTPUT.PUT_LINE('Dropped table: ' || table_rec.table_name);
-    END LOOP;
-END;
-/
-
+WITH filtered_tables AS (
+    SELECT
+        TABLE_NAME,
+        REGEXP_REPLACE(TABLE_NAME, '_[[:alpha:]]{3}\d{2}$', '') AS TBLNAME,
+        ROW_NUMBER() OVER (PARTITION BY REGEXP_REPLACE(TABLE_NAME, '_[[:alpha:]]{3}\d{2}$', '') ORDER BY TABLE_NAME) AS rn
+    FROM
+        all_tables
+    WHERE
+        owner = 'SLFR'
+        AND table_name LIKE 'FAIR\_%\_OUT%'
+        AND table_name NOT LIKE 'FAIR_OUT_CONTROL%'
+)
+SELECT TABLE_NAME, TBLNAME
+FROM filtered_tables
+WHERE rn = 1;
